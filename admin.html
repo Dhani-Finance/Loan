@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Secret Admin Panel - Dhani Finance</title>
+    <!-- Firebase SDK Integration -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+      import { getDatabase } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+      
+      const firebaseConfig = {
+        apiKey: "AIzaSyB3dECm23n4CpMKcoGrL_CXzB7-swb5w8I",
+        authDomain: "dhanifinance-4ec9f.firebaseapp.com",
+        databaseURL: "https://dhanifinance-4ec9f-default-rtdb.firebaseio.com",
+        projectId: "dhanifinance-4ec9f",
+        storageBucket: "dhanifinance-4ec9f.firebasestorage.app",
+        messagingSenderId: "606890873547",
+        appId: "1:606890873547:web:d0f725259e26497e81014e",
+        measurementId: "G-6DPE35JPWN"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const database = getDatabase(app);
+    </script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
+        
+        .admin-container { width: 100%; max-width: 450px; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); padding: 15px; border: 1px solid #d1d5db; max-height: 95vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .admin-title { font-size: 13px; font-weight: 900; color: #0052cc; margin-bottom: 10px; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .form-group { margin-bottom: 8px; }
+        .form-group label { font-size: 10px; font-weight: 800; color: #4b5563; display: block; margin-bottom: 2px; text-transform: uppercase; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 11px; font-weight: 600; background: #fff; }
+        
+        .dynamic-row { background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px; position: relative; }
+        .remove-btn { background: #ef4444; color: white; border: none; font-size: 9px; padding: 3px 6px; border-radius: 4px; cursor: pointer; float: right; }
+
+        .add-more-btn { background: #10b981; color: white; border: none; width: 100%; padding: 8px; border-radius: 6px; font-weight: 800; cursor: pointer; font-size: 10px; margin-bottom: 10px; }
+        .save-btn { background: #0052cc; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; margin-top: 10px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,82,204,0.3); }
+
+        .client-list-box { background: #f1f5f9; border-radius: 8px; padding: 10px; margin-bottom: 12px; border: 1px solid #cbd5e1; }
+        .client-item-row { background: white; padding: 8px; border-radius: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; font-size: 10px; }
+        .client-actions button { padding: 5px 8px; font-size: 9px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
+        .edit-btn { background: #3b82f6; color: white; }
+        .del-client-btn { background: #ef4444; color: white; margin-left: 4px; }
+        
+        #clientsDetailsPage { display: none; }
+        .detailed-client-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 10px; }
+        .detailed-client-card b { color: #0052cc; font-size: 11px; }
+        
+        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .auth-card { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 320px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="authOverlay">
+    <div class="auth-card">
+        <h3 style="color: #0052cc; margin-bottom: 10px; font-size: 15px;">🔒 Admin Login</h3>
+        <p style="font-size: 10px; color: #64748b; margin-bottom: 12px;">Enter password to access Dhani Finance Admin Panel.</p>
+        <div class="form-group">
+            <input type="password" id="adminPasswordInput" placeholder="Enter Password" style="text-align: center;">
+        </div>
+        <button onclick="verifyAdminPassword()" style="width: 100%; background: #0052cc; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; margin-top: 6px;">Login</button>
+        <div id="authError" style="color: #ef4444; font-size: 9px; margin-top: 6px; font-weight: bold;"></div>
+    </div>
+</div>
+
+<div class="admin-container">
+    <div class="admin-title">
+      <span id="panelTitleMain">🛠️ Dhani Admin Panel</span>
+      <div>
+        <button onclick="toggleClientsPage()" id="togglePageBtn" style="font-size: 9px; padding: 4px 8px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 4px; font-weight: bold;">📁 Clients Page</button>
+        <button onclick="resetAdminForm()" style="font-size: 9px; padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">+ New Client</button>
+      </div>
+    </div>
+
+    <div id="mainFormContainer">
+        <div class="client-list-box">
+          <div style="font-size: 11px; font-weight: 900; color: #0052cc; margin-bottom: 5px;">📋 Registered Clients List</div>
+          <div class="form-group" style="margin-bottom: 5px;">
+            <input type="text" id="admin_search" placeholder="Search Name or Mobile..." onkeyup="filterClientsList()">
+          </div>
+          <div id="adminClientsContainer" style="max-height: 150px; overflow-y: auto;"></div>
+        </div>
+
+        <input type="hidden" id="editing_mobile" value="">
+
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+          <div style="font-size: 11px; font-weight: 900; color: #0052cc; margin-bottom: 6px;">👤 Client Profile & Basic Info</div>
+          <div class="form-group">
+            <label>Client Profile Photo / Avatar (KYC)</label>
+            <input type="file" accept="image/*" onchange="handleAdminAvatarUpload(this)">
+            <input type="hidden" id="admin_avatar" value="">
+            <div id="avatar_preview_container" style="margin-top: 4px;"></div>
+            <span id="avatar_status" style="font-size: 9px; color: #047857; font-weight: bold;">No photo uploaded</span>
+          </div>
+          <div class="form-group">
+            <label>Client Mobile Number (Login ID)</label>
+            <input type="text" id="admin_mobile" placeholder="e.g. 9739074939">
+          </div>
+          <div class="form-group">
+            <label>Client Full Name</label>
+            <input type="text" id="admin_fullName" placeholder="e.g. SREENIVAS C V">
+          </div>
+          <div class="form-group">
+            <label>Father / Husband Name</label>
+            <input type="text" id="admin_fatherName" placeholder="e.g. VASUDEVAN">
+          </div>
+          <div class="form-group">
+            <label>Date of Birth</label>
+            <input type="text" id="admin_dob" placeholder="14/04/1980">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="text" id="admin_email" placeholder="client@gmail.com">
+          </div>
+          <div class="form-group">
+            <label>Aadhaar Number</label>
+            <input type="text" id="admin_aadhaar" placeholder="[Aadhaar Redacted]">
+          </div>
+          <div class="form-group">
+            <label>PAN Card Number</label>
+            <input type="text" id="admin_pan" placeholder="BOQPS7426R">
+          </div>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+          <div style="font-size: 11px; font-weight: 900; color: #0052cc; margin-bottom: 6px;">💰 Loan & Terms Details</div>
+          <div class="form-group">
+            <label>Loan Type Tag</label>
+            <input type="text" id="admin_loanType" value="DHANI PERSONAL LOAN">
+          </div>
+          <div class="form-group">
+            <label>Loan Amount (₹)</label>
+            <input type="number" id="admin_loanAmount" placeholder="200000">
+          </div>
+          <div class="form-group">
+            <label>Application Number</label>
+            <input type="text" id="admin_appNo" placeholder="DHANI/2026/0000016">
+          </div>
+          <div class="form-group">
+            <label>Tenure (in Years)</label>
+            <input type="text" id="admin_tenure" placeholder="2">
+          </div>
+          <div class="form-group">
+            <label>Interest Rate (%)</label>
+            <input type="text" id="admin_interestRate" placeholder="7">
+          </div>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+          <div style="font-size: 11px; font-weight: 900; color: #0052cc; margin-bottom: 6px;">🏦 Bank Account Details</div>
+          <div class="form-group">
+            <label>Account Type</label>
+            <input type="text" id="admin_accType" value="Saving">
+          </div>
+          <div class="form-group">
+            <label>Bank Name</label>
+            <input type="text" id="admin_bankName" placeholder="Punjab National Bank">
+          </div>
+          <div class="form-group">
+            <label>Account Number</label>
+            <input type="text" id="admin_accNo" placeholder="10462043000033">
+          </div>
+          <div class="form-group">
+            <label>IFSC Code</label>
+            <input type="text" id="admin_ifsc" placeholder="PUNB0104610">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Status Heading</label>
+          <input type="text" id="admin_statusHeading" value="PAYMENT COMPLETE">
+        </div>
+        <div class="form-group">
+          <label>Status Note</label>
+          <input type="text" id="admin_statusDesc" value="Fee received. No remaining charges.">
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+          <div style="font-size: 11px; font-weight: 900; color: #0052cc; margin-bottom: 6px;">💳 Payment Gateway (UPI & QR)</div>
+          <div class="form-group">
+            <label>Company UPI ID</label>
+            <input type="text" id="admin_upiId" placeholder="e.g. merchant@paytm">
+          </div>
+          <div class="form-group">
+            <label>Upload Company QR Code Image</label>
+            <input type="file" accept="image/*" onchange="handleAdminQRUpload(this)">
+            <input type="hidden" id="admin_qrCodeBase64" value="">
+            <span id="qr_status" style="font-size: 9px; color: #047857; font-weight: bold;">No QR uploaded</span>
+          </div>
+        </div>
+
+        <hr style="margin: 10px 0; border: 0; border-top: 1px solid #e5e7eb;">
+        
+        <div class="admin-title" style="font-size: 11px;">💳 Passbook Charges & Uploaded Receipts Manager</div>
+        <div id="chargesListContainer">
+          <div class="dynamic-row">
+            <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+            <div class="form-group"><label>Fee Type</label><input type="text" class="charge-name" value="Processing Fee"></div>
+            <div class="form-group"><label>Amount</label><input type="text" class="charge-amount" value="₹1,999"></div>
+            <div class="form-group"><label>Status / TXN Info</label><input type="text" class="charge-txn" value="TXN: 35701722 (PAID)"></div>
+            <div class="form-group" style="margin-top: 5px;">
+              <label>Client Payment Receipt Status</label>
+              <input type="hidden" class="charge-receipt-input" value="">
+              <div class="charge-receipt-preview" style="font-size: 9px; color: #64748b; font-weight: bold;">No receipt uploaded for this specific charge yet.</div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-more-btn" onclick="addChargeRow()">+ Add Charge</button>
+
+        <div class="admin-title" style="font-size: 11px;">📄 Documents Manager</div>
+        <div id="papersListContainer">
+          <div class="dynamic-row">
+            <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+            <div class="form-group"><label>Document Title</label><input type="text" class="paper-title-input" value="Loan Approval Letter"></div>
+            <div class="form-group"><label>Issue Date</label><input type="text" class="paper-date-input" value="ISSUE DATE: 30 Jul 2026"></div>
+            <div class="form-group">
+              <label>Upload Document File / Image</label>
+              <input type="file" class="paper-file-input" accept="image/*,.pdf" onchange="handleDocumentUpload(this)">
+              <input type="hidden" class="paper-link-input" value="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
+              <span style="font-size: 9px; color: #047857; font-weight: bold;" class="upload-status">📎 File Linked</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="add-more-btn" onclick="addPaperRow()">+ Add Document File</button>
+
+        <button class="save-btn" onclick="saveAdminData()">💾 Save / Update Client Details</button>
+    </div>
+
+    <div id="clientsDetailsPage">
+        <div style="font-size: 11px; font-weight: 900; color: #0052cc; margin-bottom: 10px;">📂 All Clients Detailed Information Page</div>
+        <div class="form-group" style="margin-bottom: 10px;">
+          <input type="text" id="full_page_search" placeholder="Search client name or mobile..." onkeyup="renderFullClientsPage()">
+        </div>
+        <div id="fullClientsListContainer" style="max-height: 60vh; overflow-y: auto;"></div>
+    </div>
+</div>
+
+<script>
+  const ADMIN_PASS = "Dhani@123";
+
+  // Fast Client-side Image Compressor (Reduces 5MB image to ~100KB)
+  function compressImage(file, maxWidth, quality, callback) {
+    if (!file || !file.type.startsWith('image/')) {
+      if (file) {
+        let reader = new FileReader();
+        reader.onload = e => callback(e.target.result);
+        reader.readAsDataURL(file);
+      } else {
+        callback('');
+      }
+      return;
+    }
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      let img = new Image();
+      img.onload = function() {
+        let canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        let ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        callback(compressedDataUrl);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function verifyAdminPassword() {
+    let enteredPass = document.getElementById('adminPasswordInput').value;
+    if (enteredPass === ADMIN_PASS) {
+      document.getElementById('authOverlay').style.display = 'none';
+      syncAllStorageData();
+      renderAdminClientsList();
+      renderFullClientsPage();
+    } else {
+      document.getElementById('authError').innerText = "Incorrect Password! Try again.";
+    }
+  }
+
+  function syncAllStorageData() {
+    let clients = JSON.parse(localStorage.getItem('dhani_all_clients')) || JSON.parse(localStorage.getItem('bajaj_all_clients')) || [];
+    let appList = JSON.parse(localStorage.getItem('loanApplications')) || [];
+
+    let clientMap = new Map();
+    clients.forEach(c => { if(c.mobile) clientMap.set(c.mobile, c); });
+
+    appList.forEach(app => {
+      let mobileKey = app.mobile || app.phone;
+      if (mobileKey && !clientMap.has(mobileKey)) {
+        let newClient = {
+          mobile: mobileKey,
+          fullName: app.name || app.fullName || "New Applicant",
+          fatherName: app.fatherName || "---",
+          dob: app.dob || "---",
+          email: app.email || "---",
+          aadhaar: app.aadhaar || "[Aadhaar Redacted]",
+          pan: app.pan || "---",
+          loanType: app.loanType || "DHANI PERSONAL LOAN",
+          loanAmount: app.amount || "200000",
+          appNo: app.appId || app.appNo || ("DHANI/2026/" + Math.floor(100000 + Math.random() * 900000)),
+          tenure: app.tenure || "2",
+          interestRate: app.interestRate || "7",
+          accType: app.accType || "Saving",
+          bankName: app.bankName || "Punjab National Bank",
+          accNo: app.accountNo || app.accNo || "10462043000033",
+          ifsc: app.ifsc || "PUNB0104610",
+          statusHeading: app.statusHeading || "PAYMENT COMPLETE",
+          statusDesc: app.statusDesc || "Fee received. No remaining charges.",
+          charges: app.charges || [{ name: "Processing Fee", amount: "₹1,999", txn: "TXN: 35701722 (PAID)", receipt: "" }],
+          papers: app.papers || [{ title: "Loan Approval Letter", date: "ISSUE DATE: 30 Jul 2026", link: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }],
+          upiId: app.upiId || "merchant@paytm",
+          qrCodeBase64: app.qrCodeBase64 || "",
+          avatar: app.avatar || app.photo || app.kycImage || ""
+        };
+        clientMap.set(mobileKey, newClient);
+      }
+    });
+
+    if (clientMap.size === 0) {
+      clientMap.set("9739074939", {
+        mobile: "9739074939",
+        fullName: "SREENIVAS C V",
+        fatherName: "VASUDEVAN",
+        dob: "14/04/1980",
+        email: "---",
+        aadhaar: "[Aadhaar Redacted]",
+        pan: "BOQPS7426R",
+        loanType: "DHANI PERSONAL LOAN",
+        loanAmount: "200000",
+        appNo: "DHANI/2026/0000016",
+        tenure: "2",
+        interestRate: "7",
+        accType: "Saving",
+        bankName: "Punjab National Bank",
+        accNo: "10462043000033",
+        ifsc: "PUNB0104610",
+        statusHeading: "PAYMENT COMPLETE",
+        statusDesc: "Fee received. No remaining charges.",
+        charges: [{ name: "Processing Fee", amount: "₹1,999", txn: "TXN: 35701722 (PAID)", receipt: "" }],
+        papers: [{ title: "Loan Approval Letter", date: "ISSUE DATE: 30 Jul 2026", link: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }],
+        upiId: "merchant@paytm",
+        qrCodeBase64: "",
+        avatar: ""
+      });
+    }
+
+    localStorage.setItem('dhani_all_clients', JSON.stringify(Array.from(clientMap.values())));
+  }
+
+  function getClients() {
+    return JSON.parse(localStorage.getItem('dhani_all_clients')) || [];
+  }
+
+  function renderAdminClientsList(filter = "") {
+    let clients = getClients();
+    let container = document.getElementById('adminClientsContainer');
+    container.innerHTML = '';
+
+    let filtered = clients.filter(c => 
+      (c.fullName && c.fullName.toLowerCase().includes(filter.toLowerCase())) || 
+      (c.mobile && c.mobile.includes(filter))
+    );
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="font-size:10px; color:#6b7280; text-align:center; padding:6px;">No clients found</div>';
+      return;
+    }
+
+    let fragment = document.createDocumentFragment();
+    filtered.forEach(c => {
+      let hasReceipts = c.charges && c.charges.some(ch => ch.receipt);
+      let receiptBadge = hasReceipts ? `<span style="color:#047857; font-weight:bold; background:#d1fae5; padding:2px 4px; border-radius:4px;">📎 [Receipt Uploaded]</span>` : `<span style="color:#9ca3af; font-size:8px;">[No Receipts]</span>`;
+      let div = document.createElement('div');
+      div.className = 'client-item-row';
+      div.innerHTML = `
+        <div>
+          <b>${c.fullName}</b> ${receiptBadge}<br>
+          <span style="font-size:9px; color:#6b7280;">📱 ${c.mobile} | Amt: ₹${c.loanAmount}</span>
+        </div>
+        <div class="client-actions">
+          <button class="edit-btn" onclick="editClient('${c.mobile}')">Edit</button>
+          <button class="del-client-btn" onclick="deleteClient('${c.mobile}')">Del</button>
+        </div>`;
+      fragment.appendChild(div);
+    });
+    container.appendChild(fragment);
+  }
+
+  function filterClientsList() {
+    renderAdminClientsList(document.getElementById('admin_search').value);
+  }
+
+  function toggleClientsPage() {
+    let mainForm = document.getElementById('mainFormContainer');
+    let clientsPage = document.getElementById('clientsDetailsPage');
+    let title = document.getElementById('panelTitleMain');
+    let toggleBtn = document.getElementById('togglePageBtn');
+
+    if (clientsPage.style.display === 'none' || !clientsPage.style.display) {
+      mainForm.style.display = 'none';
+      clientsPage.style.display = 'block';
+      title.innerText = '📁 Clients Details Page';
+      toggleBtn.innerText = '🛠️ Back to Dashboard';
+      toggleBtn.style.background = '#3b82f6';
+      renderFullClientsPage();
+    } else {
+      mainForm.style.display = 'block';
+      clientsPage.style.display = 'none';
+      title.innerText = '🛠️ Dhani Admin Panel';
+      toggleBtn.innerText = '📁 Clients Page';
+      toggleBtn.style.background = '#10b981';
+      renderAdminClientsList();
+    }
+  }
+
+  function renderFullClientsPage() {
+    let clients = getClients();
+    let container = document.getElementById('fullClientsListContainer');
+    let query = document.getElementById('full_page_search') ? document.getElementById('full_page_search').value.toLowerCase() : '';
+    container.innerHTML = '';
+
+    let filtered = clients.filter(c => 
+      (c.fullName && c.fullName.toLowerCase().includes(query)) || 
+      (c.mobile && c.mobile.includes(query)) || 
+      (c.appNo && c.appNo.toLowerCase().includes(query))
+    );
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="font-size:10px; color:#6b7280; text-align:center; padding:10px;">No records found</div>';
+      return;
+    }
+
+    let fragment = document.createDocumentFragment();
+    filtered.forEach(c => {
+      let avatarLinkHtml = c.avatar 
+        ? `<a href="${c.avatar}" target="_blank" download="KYC_Photo_${c.fullName}" style="color: #2563eb; text-decoration: underline; font-weight: bold;">📥 Download KYC Photo</a>` 
+        : `<span style="color: #ef4444;">No Photo Uploaded</span>`;
+
+      let hasReceipts = c.charges && c.charges.some(ch => ch.receipt);
+      let receiptStatusText = hasReceipts ? `<span style="color: #047857; font-weight: bold;">✅ Payment Screenshot Uploaded by Client</span>` : `<span style="color: #64748b;">No payment screenshot uploaded</span>`;
+
+      let card = document.createElement('div');
+      card.className = 'detailed-client-card';
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+          <b>👤 ${c.fullName}</b>
+          <button onclick="editClientAndSwitch('${c.mobile}')" style="background:#2563eb; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:9px; font-weight:bold;">✏️ Edit & Update</button>
+        </div>
+        <div style="color:#4b5563; line-height: 1.5;">
+          📱 <b>Mobile:</b> ${c.mobile} | 🆔 <b>App No:</b> ${c.appNo || 'N/A'}<br>
+          💰 <b>Loan Amt:</b> ₹${c.loanAmount} | ⏳ <b>Tenure:</b> ${c.tenure} Years<br>
+          🏦 <b>Bank:</b> ${c.bankName || 'N/A'} (${c.accNo || 'N/A'})<br>
+          📌 <b>Status:</b> <span style="color:#047857; font-weight:bold;">${c.statusHeading || 'N/A'}</span><br>
+          🖼️ <b>KYC Photo:</b> ${avatarLinkHtml}<br>
+          💳 <b>Payment Proof:</b> ${receiptStatusText}
+        </div>`;
+      fragment.appendChild(card);
+    });
+    container.appendChild(fragment);
+  }
+
+  function editClientAndSwitch(mobile) {
+    toggleClientsPage();
+    editClient(mobile);
+  }
+
+  function resetAdminForm() {
+    document.getElementById('editing_mobile').value = '';
+    document.getElementById('admin_avatar').value = '';
+    document.getElementById('avatar_preview_container').innerHTML = '';
+    document.getElementById('avatar_status').innerText = 'No photo uploaded';
+    document.getElementById('admin_mobile').value = '';
+    document.getElementById('admin_fullName').value = '';
+    document.getElementById('admin_fatherName').value = '';
+    document.getElementById('admin_dob').value = '';
+    document.getElementById('admin_email').value = '';
+    document.getElementById('admin_aadhaar').value = '';
+    document.getElementById('admin_pan').value = '';
+    document.getElementById('admin_loanType').value = 'DHANI PERSONAL LOAN';
+    document.getElementById('admin_loanAmount').value = '';
+    document.getElementById('admin_appNo').value = '';
+    document.getElementById('admin_tenure').value = '2';
+    document.getElementById('admin_interestRate').value = '7';
+    document.getElementById('admin_accType').value = 'Saving';
+    document.getElementById('admin_bankName').value = '';
+    document.getElementById('admin_accNo').value = '';
+    document.getElementById('admin_ifsc').value = '';
+    document.getElementById('admin_statusHeading').value = 'PAYMENT COMPLETE';
+    document.getElementById('admin_statusDesc').value = 'Fee received. No remaining charges.';
+    document.getElementById('admin_upiId').value = '';
+    document.getElementById('admin_qrCodeBase64').value = '';
+    document.getElementById('qr_status').innerText = 'No QR uploaded';
+    document.getElementById('chargesListContainer').innerHTML = `
+      <div class="dynamic-row">
+        <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+        <div class="form-group"><label>Fee Type</label><input type="text" class="charge-name" value="Processing Fee"></div>
+        <div class="form-group"><label>Amount</label><input type="text" class="charge-amount" value="₹1,999"></div>
+        <div class="form-group"><label>Status / TXN Info</label><input type="text" class="charge-txn" value="TXN: 35701722 (PAID)"></div>
+        <div class="form-group" style="margin-top: 5px;">
+          <label>Client Payment Receipt Status</label>
+          <input type="hidden" class="charge-receipt-input" value="">
+          <div class="charge-receipt-preview" style="font-size: 9px; color: #64748b; font-weight: bold;">No receipt uploaded for this specific charge yet.</div>
+        </div>
+      </div>`;
+    document.getElementById('papersListContainer').innerHTML = '';
+  }
+
+  function editClient(mobile) {
+    let client = getClients().find(c => c.mobile === mobile);
+    if (!client) return;
+
+    document.getElementById('editing_mobile').value = client.mobile;
+    document.getElementById('admin_avatar').value = client.avatar || '';
+    if (client.avatar) {
+      document.getElementById('avatar_status').innerText = '✅ Photo Loaded';
+      document.getElementById('avatar_preview_container').innerHTML = `<a href="${client.avatar}" target="_blank" download="KYC_Photo" style="font-size:9px; color:#2563eb; text-decoration:underline;">👁️ View/Download KYC Photo</a>`;
+    } else {
+      document.getElementById('avatar_status').innerText = 'No photo uploaded';
+      document.getElementById('avatar_preview_container').innerHTML = '';
+    }
+
+    document.getElementById('admin_mobile').value = client.mobile;
+    document.getElementById('admin_fullName').value = client.fullName || '';
+    document.getElementById('admin_fatherName').value = client.fatherName || '';
+    document.getElementById('admin_dob').value = client.dob || '';
+    document.getElementById('admin_email').value = client.email || '';
+    document.getElementById('admin_aadhaar').value = client.aadhaar || '';
+    document.getElementById('admin_pan').value = client.pan || '';
+    document.getElementById('admin_loanType').value = client.loanType || 'DHANI PERSONAL LOAN';
+    document.getElementById('admin_loanAmount').value = client.loanAmount || '';
+    document.getElementById('admin_appNo').value = client.appNo || '';
+    document.getElementById('admin_tenure').value = client.tenure || '2';
+    document.getElementById('admin_interestRate').value = client.interestRate || '7';
+    document.getElementById('admin_accType').value = client.accType || 'Saving';
+    document.getElementById('admin_bankName').value = client.bankName || '';
+    document.getElementById('admin_accNo').value = client.accNo || '';
+    document.getElementById('admin_ifsc').value = client.ifsc || '';
+    document.getElementById('admin_statusHeading').value = client.statusHeading || '';
+    document.getElementById('admin_statusDesc').value = client.statusDesc || '';
+    document.getElementById('admin_upiId').value = client.upiId || '';
+    document.getElementById('admin_qrCodeBase64').value = client.qrCodeBase64 || '';
+    
+    if (client.qrCodeBase64) {
+      document.getElementById('qr_status').innerText = '✅ QR Code Loaded';
+    } else {
+      document.getElementById('qr_status').innerText = 'No QR uploaded';
+    }
+
+    let chargesContainer = document.getElementById('chargesListContainer');
+    chargesContainer.innerHTML = '';
+    if (client.charges && client.charges.length > 0) {
+      let fragment = document.createDocumentFragment();
+      client.charges.forEach((ch, idx) => {
+        let receiptHtml = ch.receipt 
+          ? `<div style="background:#ecfdf5; border:1px solid #10b981; padding:6px; border-radius:6px; margin-top:4px;">
+               <span style="color:#047857; font-weight:800; display:block; margin-bottom:4px;">✅ Client Uploaded Payment Screenshot!</span>
+               <a href="${ch.receipt}" target="_blank" download="Payment_Receipt" style="color: #2563eb; text-decoration: underline; font-weight:bold; font-size:10px;">👁️ View / Download Screenshot</a>
+               <button type="button" onclick="approvePayment('${client.mobile}', ${idx})" style="display:block; margin-top:6px; background:#10b981; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">✅ Approve & Mark Paid</button>
+             </div>` 
+          : `<span style="color: #64748b;">No payment screenshot uploaded for this charge yet.</span>`;
+
+        let div = document.createElement('div');
+        div.className = 'dynamic-row';
+        div.innerHTML = `
+            <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+            <div class="form-group"><label>Fee Type</label><input type="text" class="charge-name" value="${ch.name}"></div>
+            <div class="form-group"><label>Amount</label><input type="text" class="charge-amount" value="${ch.amount}"></div>
+            <div class="form-group"><label>Status / TXN Info</label><input type="text" class="charge-txn" value="${ch.txn}"></div>
+            <div class="form-group" style="margin-top: 5px;">
+              <label>Client Payment Receipt Verification</label>
+              <input type="hidden" class="charge-receipt-input" value="${ch.receipt || ''}">
+              <div class="charge-receipt-preview">${receiptHtml}</div>
+            </div>`;
+        fragment.appendChild(div);
+      });
+      chargesContainer.appendChild(fragment);
+    }
+
+    let papersContainer = document.getElementById('papersListContainer');
+    papersContainer.innerHTML = '';
+    if (client.papers && client.papers.length > 0) {
+      let fragment = document.createDocumentFragment();
+      client.papers.forEach(p => {
+        let div = document.createElement('div');
+        div.className = 'dynamic-row';
+        div.innerHTML = `
+            <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+            <div class="form-group"><label>Document Title</label><input type="text" class="paper-title-input" value="${p.title}"></div>
+            <div class="form-group"><label>Issue Date</label><input type="text" class="paper-date-input" value="${p.date}"></div>
+            <div class="form-group">
+              <label>Upload Document File / Image</label>
+              <input type="file" class="paper-file-input" accept="image/*,.pdf" onchange="handleDocumentUpload(this)">
+              <input type="hidden" class="paper-link-input" value="${p.link}">
+              <span style="font-size: 9px; color: #047857; font-weight: bold;" class="upload-status">📎 File Linked</span>
+            </div>`;
+        fragment.appendChild(div);
+      });
+      papersContainer.appendChild(fragment);
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    alert('Loaded client details successfully into form.');
+  }
+
+  function approvePayment(mobile, chargeIdx) {
+    let clients = getClients().map(c => {
+      if (c.mobile === mobile) {
+        if (c.charges && c.charges[chargeIdx]) {
+          c.charges[chargeIdx].txn = "TXN: VERIFIED & PAID ✅";
+        }
+      }
+      return c;
+    });
+    localStorage.setItem('dhani_all_clients', JSON.stringify(clients));
+
+    let appList = JSON.parse(localStorage.getItem('loanApplications')) || [];
+    appList = appList.map(a => {
+      if ((a.mobile || a.phone) === mobile) {
+        if (a.charges && a.charges[chargeIdx]) {
+          a.charges[chargeIdx].txn = "TXN: VERIFIED & PAID ✅";
+        }
+      }
+      return a;
+    });
+    localStorage.setItem('loanApplications', JSON.stringify(appList));
+
+    alert('Payment approved successfully! Status updated to PAID.');
+    editClient(mobile);
+  }
+
+  function deleteClient(mobile) {
+    if (confirm('Delete this client?')) {
+      let clients = getClients().filter(c => c.mobile !== mobile);
+      localStorage.setItem('dhani_all_clients', JSON.stringify(clients));
+      
+      let appList = JSON.parse(localStorage.getItem('loanApplications')) || [];
+      appList = appList.filter(a => (a.mobile || a.phone) !== mobile);
+      localStorage.setItem('loanApplications', JSON.stringify(appList));
+
+      renderAdminClientsList();
+      renderFullClientsPage();
+    }
+  }
+
+  function handleAdminAvatarUpload(input) {
+    let file = input.files[0];
+    if (file) {
+      document.getElementById('avatar_status').innerText = '⏳ Compressing photo...';
+      compressImage(file, 800, 0.6, function(compressedBase64) {
+        document.getElementById('admin_avatar').value = compressedBase64;
+        document.getElementById('avatar_status').innerText = '✅ Photo Ready to Save!';
+        document.getElementById('avatar_preview_container').innerHTML = `<a href="${compressedBase64}" target="_blank" download="KYC_Photo" style="font-size:9px; color:#2563eb; text-decoration:underline;">👁️ View/Download KYC Photo</a>`;
+      });
+    }
+  }
+
+  function handleAdminQRUpload(input) {
+    let file = input.files[0];
+    if (file) {
+      document.getElementById('qr_status').innerText = '⏳ Compressing QR Code...';
+      compressImage(file, 600, 0.6, function(compressedBase64) {
+        document.getElementById('admin_qrCodeBase64').value = compressedBase64;
+        document.getElementById('qr_status').innerText = '✅ QR Code Ready to Save!';
+      });
+    }
+  }
+
+  function handleDocumentUpload(inputElement) {
+    let file = inputElement.files[0];
+    if (file) {
+      let row = inputElement.closest('.dynamic-row');
+      let statusSpan = row.querySelector('.upload-status');
+      statusSpan.innerHTML = `⏳ Processing...`;
+      compressImage(file, 800, 0.6, function(compressedData) {
+        row.querySelector('.paper-link-input').value = compressedData;
+        statusSpan.innerHTML = `📎 File Linked (Optimized)`;
+      });
+    }
+  }
+
+  function saveAdminData() {
+    let mobileInput = document.getElementById('admin_mobile').value.trim();
+    if (!mobileInput) { alert('Mobile Number required!'); return; }
+
+    let charges = [];
+    document.querySelectorAll('#chargesListContainer .dynamic-row').forEach(row => {
+      charges.push({
+        name: row.querySelector('.charge-name').value,
+        amount: row.querySelector('.charge-amount').value,
+        txn: row.querySelector('.charge-txn').value,
+        receipt: row.querySelector('.charge-receipt-input').value || ""
+      });
+    });
+
+    let papers = [];
+    document.querySelectorAll('#papersListContainer .dynamic-row').forEach(row => {
+      papers.push({
+        title: row.querySelector('.paper-title-input').value,
+        date: row.querySelector('.paper-date-input').value,
+        link: row.querySelector('.paper-link-input').value
+      });
+    });
+
+    let clients = getClients();
+    let editingMobile = document.getElementById('editing_mobile').value;
+
+    let clientData = {
+      mobile: mobileInput,
+      avatar: document.getElementById('admin_avatar').value,
+      fullName: document.getElementById('admin_fullName').value,
+      fatherName: document.getElementById('admin_fatherName').value,
+      dob: document.getElementById('admin_dob').value,
+      email: document.getElementById('admin_email').value,
+      aadhaar: document.getElementById('admin_aadhaar').value,
+      pan: document.getElementById('admin_pan').value,
+      loanType: document.getElementById('admin_loanType').value,
+      loanAmount: document.getElementById('admin_loanAmount').value,
+      appNo: document.getElementById('admin_appNo').value,
+      tenure: document.getElementById('admin_tenure').value,
+      interestRate: document.getElementById('admin_interestRate').value,
+      accType: document.getElementById('admin_accType').value,
+      bankName: document.getElementById('admin_bankName').value,
+      accNo: document.getElementById('admin_accNo').value,
+      ifsc: document.getElementById('admin_ifsc').value,
+      statusHeading: document.getElementById('admin_statusHeading').value,
+      statusDesc: document.getElementById('admin_statusDesc').value,
+      upiId: document.getElementById('admin_upiId').value,
+      qrCodeBase64: document.getElementById('admin_qrCodeBase64').value,
+      charges: charges,
+      papers: papers
+    };
+
+    if (editingMobile) {
+      clients = clients.map(c => c.mobile === editingMobile ? clientData : c);
+    } else {
+      clients = clients.filter(c => c.mobile !== mobileInput);
+      clients.push(clientData);
+    }
+
+    try {
+      localStorage.setItem('dhani_all_clients', JSON.stringify(clients));
+
+      let appList = JSON.parse(localStorage.getItem('loanApplications')) || [];
+      let appIndex = appList.findIndex(a => (a.mobile || a.phone) === mobileInput);
+      if (appIndex !== -1) {
+        appList[appIndex] = { ...appList[appIndex], ...clientData };
+      } else {
+        appList.push(clientData);
+      }
+      localStorage.setItem('loanApplications', JSON.stringify(appList));
+
+      renderAdminClientsList();
+      renderFullClientsPage();
+      alert('Client full profile, loan details, and payment statuses saved successfully!');
+      resetAdminForm();
+    } catch(e) {
+      alert('Storage Quota Exceeded! Please delete old/unnecessary clients or files.');
+    }
+  }
+
+  function addChargeRow() {
+    let container = document.getElementById('chargesListContainer');
+    let div = document.createElement('div');
+    div.className = 'dynamic-row';
+    div.innerHTML = `
+      <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+      <div class="form-group"><label>Fee Type</label><input type="text" class="charge-name" value="New Fee"></div>
+      <div class="form-group"><label>Amount</label><input type="text" class="charge-amount" value="₹500"></div>
+      <div class="form-group"><label>Status / TXN Info</label><input type="text" class="charge-txn" value="PENDING"></div>
+      <div class="form-group" style="margin-top: 5px;">
+        <label>Client Payment Receipt Status</label>
+        <input type="hidden" class="charge-receipt-input" value="">
+        <div class="charge-receipt-preview" style="font-size: 9px; color: #64748b; font-weight: bold;">No receipt uploaded for this specific charge yet.</div>
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  function addPaperRow() {
+    let container = document.getElementById('papersListContainer');
+    let div = document.createElement('div');
+    div.className = 'dynamic-row';
+    div.innerHTML = `
+      <button type="button" class="remove-btn" onclick="this.parentElement.remove()">X</button>
+      <div class="form-group"><label>Document Title</label><input type="text" class="paper-title-input" value="New Document"></div>
+      <div class="form-group"><label>Issue Date</label><input type="text" class="paper-date-input" value="ISSUE DATE: Today"></div>
+      <div class="form-group">
+        <label>Upload Document File / Image</label>
+        <input type="file" class="paper-file-input" accept="image/*,.pdf" onchange="handleDocumentUpload(this)">
+        <input type="hidden" class="paper-link-input" value="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
+        <span style="font-size: 9px; color: #047857; font-weight: bold;" class="upload-status">📎 No File Chosen</span>
+      </div>
+    `;
+    container.appendChild(div);
+  }
+</script>
+
+</body>
+</html>
