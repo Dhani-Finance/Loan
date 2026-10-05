@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dhani Finance - Client Portal</title>
+    <!-- Firebase SDK Integration -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+      import { getDatabase, ref, query, orderByChild, equalTo, get, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+      
+      const firebaseConfig = {
+        apiKey: "AIzaSyB3dECm23n4CpMKcoGrL_CXzB7-swb5w8I",
+        authDomain: "dhanifinance-4ec9f.firebaseapp.com",
+        databaseURL: "https://dhanifinance-4ec9f-default-rtdb.firebaseio.com",
+        projectId: "dhanifinance-4ec9f",
+        storageBucket: "dhanifinance-4ec9f.firebasestorage.app",
+        messagingSenderId: "606890873547",
+        appId: "1:606890873547:web:d0f725259e26497e81014e",
+        measurementId: "G-6DPE35JPWN"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const database = getDatabase(app);
+
+      window.dbRef = ref;
+      window.dbQuery = query;
+      window.dbOrderByChild = orderByChild;
+      window.dbEqualTo = equalTo;
+      window.dbGet = get;
+      window.dbOnValue = onValue;
+      window.dbSet = set;
+      window.firebaseDatabase = database;
+    </script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
+        
+        .mobile-container { width: 100%; max-width: 380px; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); overflow: hidden; border: 1px solid #d1d5db; min-height: 650px; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .view-section { display: none; flex-direction: column; height: 100%; flex: 1; overflow-y: auto; }
+        .view-section.active { display: flex; }
+
+        .top-header { background-color: #0052cc; color: white; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; }
+        .brand-badge { background: white; color: #0052cc; padding: 3px 8px; border-radius: 4px; font-weight: 900; font-size: 10px; letter-spacing: 1px; }
+        .avatar-box { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; border: 1.5px solid white; background: #e2e8f0; }
+        .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        .hero-banner { background-color: #0052cc; color: white; padding: 15px 15px 20px 15px; text-align: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+        .loan-tag { display: inline-block; border: 1px solid rgba(255,255,255,0.4); padding: 2px 10px; border-radius: 15px; font-size: 8px; font-weight: bold; color: #93c5fd; margin-bottom: 6px; text-transform: uppercase; }
+        .loan-amount { font-size: 24px; font-weight: 900; margin-bottom: 10px; }
+
+        .step-progress { display: flex; justify-content: space-between; align-items: center; position: relative; margin-top: 10px; padding: 0 20px; }
+        .step-progress::before { content: ''; position: absolute; top: 5px; left: 35px; right: 35px; height: 2px; background: rgba(255,255,255,0.3); z-index: 1; }
+        .step-item { position: relative; z-index: 2; text-align: center; }
+        .step-dot { width: 10px; height: 10px; background: white; border-radius: 50%; margin: 0 auto 3px auto; }
+        .step-label { font-size: 7px; font-weight: 800; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .body-content { background-color: #f4f6f9; padding: 10px; flex: 1; overflow-y: auto; }
+        .card { background: white; border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid #e5e7eb; }
+        .card-title { font-size: 9px; font-weight: 900; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
+
+        .form-group { margin-bottom: 8px; }
+        .form-group label { font-size: 10px; font-weight: 800; color: #4b5563; display: block; margin-bottom: 2px; text-transform: uppercase; }
+        .form-group input { width: 100%; padding: 7px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 11px; font-weight: 600; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .data-label { font-size: 8px; font-weight: 700; color: #9ca3af; display: block; text-transform: uppercase; }
+        .data-value { font-size: 10px; font-weight: 800; color: #0052cc; word-break: break-all; }
+
+        .status-box { border: 2px dashed #10b981; background: #ecfdf5; border-radius: 8px; padding: 8px; text-align: center; margin-bottom: 6px; }
+        .status-heading { font-size: 11px; font-weight: 900; color: #047857; margin-bottom: 2px; }
+        .status-desc { font-size: 9px; color: #4b5563; }
+
+        .withdraw-btn { width: 100%; background: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 900; font-size: 11px; cursor: pointer; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); }
+
+        .doc-btn { border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 8px; padding: 8px; text-align: center; cursor: pointer; }
+        .doc-btn span { display: block; font-size: 12px; }
+        .doc-btn b { font-size: 10px; color: #0052cc; }
+
+        .bottom-nav { display: flex; background: white; border-top: 1px solid #e5e7eb; padding: 8px 0; justify-content: space-around; position: sticky; bottom: 0; z-index: 10; }
+        .nav-item { text-align: center; cursor: pointer; color: #9ca3af; font-size: 9px; font-weight: 800; background: none; border: none; }
+        .nav-item.active { color: #0052cc; }
+        .nav-item span { display: block; font-size: 14px; }
+
+        .top-banner { background-color: #0052cc; color: white; padding: 14px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 26px; height: 26px; border-radius: 50%; font-size: 14px; cursor: pointer; margin-bottom: 10px; }
+        
+        .doc-item-card { background: white; border-radius: 10px; padding: 10px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .get-btn { background-color: #0052cc; color: white; border: none; font-size: 10px; font-weight: 900; padding: 6px 12px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; text-align: center; }
+
+        .footer-info { text-align: center; padding: 8px; font-size: 9px; color: #9ca3af; background: white; border-top: 1px solid #e5e7eb; }
+        .secure-badge { background: #d1fae5; color: #047857; padding: 2px 8px; border-radius: 10px; font-size: 8px; font-weight: 800; display: inline-block; }
+
+        .pay-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; margin-top: 8px; }
+        .pay-now-btn { display: block; background: #2563eb; color: white; text-align: center; padding: 6px; border-radius: 6px; font-size: 10px; font-weight: 900; text-decoration: none; margin-bottom: 6px; }
+        .receipt-upload-box { border: 1.5px dashed #93c5fd; background: #eff6ff; padding: 6px; text-align: center; border-radius: 6px; cursor: pointer; font-size: 9px; font-weight: 700; color: #1e40af; margin-bottom: 6px; }
+
+        .emi-table { width: 100%; font-size: 9px; border-collapse: collapse; margin-top: 6px; }
+        .emi-table th, .emi-table td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; }
+        .emi-table th { background: #f1f5f9; color: #334155; font-weight: 800; }
+    </style>
+</head>
+<body>
+
+<div class="mobile-container">
+    
+    <div id="view-status-login" class="view-section active">
+        <div class="top-header">
+            <div style="width: 20px;"></div>
+            <div class="brand-badge">DHANI FINANCE</div>
+            <div style="width: 20px;"></div>
+        </div>
+        <div class="hero-banner">
+            <div class="loan-tag">CLIENT PORTAL</div>
+            <div style="font-size: 18px; font-weight: 900; margin-bottom: 5px;">Check Loan Status</div>
+            <p style="font-size: 10px; color: #93c5fd;">Enter your registered Mobile Number or Application ID.</p>
+        </div>
+        <div class="body-content" style="display: flex; flex-direction: column; justify-content: center;">
+            <div class="card" style="padding: 16px;">
+                <div class="form-group">
+                    <label>Mobile Number or Application ID</label>
+                    <input type="text" id="login_input" placeholder="e.g. 9739074939" style="padding: 10px; font-size: 11px;">
+                </div>
+                <button id="btn_check_status" onclick="clientLogin()" style="width: 100%; background: #0052cc; color: white; padding: 12px; border-radius: 8px; font-weight: 900; font-size: 12px; border: none; cursor: pointer; margin-top: 10px;">
+                    🔍 Check Status & View Details
+                </button>
+                <div id="login_error" style="color: #ef4444; font-size: 10px; text-align: center; margin-top: 8px; font-weight: 700;"></div>
+            </div>
+        </div>
+        <div class="footer-info"><div class="secure-badge">Secure by DHANI</div> © 2026 DHANI FINANCE</div>
+    </div>
+
+    <div id="view-dashboard" class="view-section">
+        <div class="top-header">
+            <button onclick="logoutClient()" style="background:none; border:none; color:white; font-size:10px; font-weight:bold; cursor:pointer;">← Logout</button>
+            <div class="brand-badge">DHANI FINANCE</div>
+            <div class="avatar-box"><img id="client_dashboard_avatar" src="https://via.placeholder.com/100" alt="Client Avatar"></div>
+        </div>
+
+        <div class="hero-banner">
+            <div class="loan-tag" id="lbl_loanTypeTag">DHANI PERSONAL LOAN</div>
+            <div class="loan-amount" id="lbl_loanAmount">₹0/-</div>
+            
+            <div class="step-progress">
+                <div class="step-item"><div class="step-dot"></div><div class="step-label">Applied</div></div>
+                <div class="step-item"><div class="step-dot"></div><div class="step-label">Approved</div></div>
+                <div class="step-item"><div class="step-dot"></div><div class="step-label">Transfer</div></div>
+            </div>
+        </div>
+
+        <div class="body-content">
+            <div class="card">
+                <div class="card-title">1. LOAN ANALYSIS</div>
+                <div class="grid-2" style="align-items: center;">
+                    <div style="text-align: center; font-size: 22px;">📊</div>
+                    <div>
+                        <span class="data-label">Principal</span>
+                        <span class="data-value" id="lbl_analysisPrincipal">₹0</span>
+                        <span class="data-label" style="margin-top: 4px;">Total Payable Interest</span>
+                        <span class="data-value" id="lbl_analysisInterest" style="color: #059669;">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">2. LOAN DETAILS</div>
+                <div class="grid-2" style="row-gap: 6px;">
+                    <div><span class="data-label">Application No</span><span class="data-value" id="lbl_appNo">---</span></div>
+                    <div><span class="data-label">Tenure</span><span class="data-value" id="lbl_tenure">---</span></div>
+                    <div><span class="data-label">Interest Rate</span><span class="data-value" id="lbl_interestRate">---</span></div>
+                    <div><span class="data-label">Monthly EMI</span><span class="data-value" id="lbl_monthlyEmi" style="color: #2563eb;">---</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">3. PERSONAL DETAILS</div>
+                <div class="grid-2" style="row-gap: 6px;">
+                    <div><span class="data-label">Full Name</span><span class="data-value" id="lbl_fullName">---</span></div>
+                    <div><span class="data-label">Father/Husband</span><span class="data-value" id="lbl_fatherName">---</span></div>
+                    <div><span class="data-label">Date of Birth</span><span class="data-value" id="lbl_dob">---</span></div>
+                    <div><span class="data-label">Mobile Number</span><span class="data-value" id="lbl_mobile">---</span></div>
+                    <div><span class="data-label">Email</span><span class="data-value" id="lbl_email">---</span></div>
+                    <div><span class="data-label">Aadhaar Number</span><span class="data-value" id="lbl_aadhaar">[Redacted]</span></div>
+                    <div style="grid-column: span 2;"><span class="data-label">PAN Card</span><span class="data-value" id="lbl_pan">---</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">4. BANK DETAILS</div>
+                <div class="grid-2" style="row-gap: 6px;">
+                    <div><span class="data-label">Account Type</span><span class="data-value" id="lbl_accType">---</span></div>
+                    <div><span class="data-label">Bank Name</span><span class="data-value" id="lbl_bankName">---</span></div>
+                    <div><span class="data-label">Account Number</span><span class="data-value" id="lbl_accNo">---</span></div>
+                    <div><span class="data-label">IFSC Code</span><span class="data-value" id="lbl_ifsc">---</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">5. CURRENT STATUS</div>
+                <div class="status-box">
+                    <div class="status-heading" id="lbl_statusHeading">---</div>
+                    <div class="status-desc" id="lbl_statusDesc">---</div>
+                    <button class="withdraw-btn" onclick="switchClientTab('passbook')">💰 Withdraw Your Loan Amount</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">6. DOCUMENTS & PASSBOOK</div>
+                <div class="grid-2">
+                    <div class="doc-btn" onclick="switchClientTab('papers')"><span>📄</span><b>PAPERS</b></div>
+                    <div class="doc-btn" onclick="switchClientTab('passbook')"><span>💳</span><b>PASSBOOK & PAY</b></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="switchClientTab('dashboard')"><span>🏠</span>Dashboard</button>
+            <button class="nav-item" onclick="switchClientTab('papers')"><span>📄</span>Papers</button>
+            <button class="nav-item" onclick="switchClientTab('passbook')"><span>💳</span>Passbook</button>
+        </div>
+        <div class="footer-info"><div class="secure-badge">Secure by DHANI</div> © 2026 DHANI FINANCE</div>
+    </div>
+
+    <div id="view-papers" class="view-section">
+        <div class="top-banner">
+            <button class="back-btn" onclick="switchClientTab('dashboard')">←</button>
+            <div style="font-size: 16px; font-weight: 900; text-align:center;">Updated Papers</div>
+        </div>
+        <div class="body-content" id="client_papers_list"></div>
+        <div class="bottom-nav">
+            <button class="nav-item" onclick="switchClientTab('dashboard')"><span>🏠</span>Dashboard</button>
+            <button class="nav-item active" onclick="switchClientTab('papers')"><span>📄</span>Papers</button>
+            <button class="nav-item" onclick="switchClientTab('passbook')"><span>💳</span>Passbook</button>
+        </div>
+    </div>
+
+    <div id="view-passbook" class="view-section">
+        <div class="top-banner">
+            <button class="back-btn" onclick="switchClientTab('dashboard')">←</button>
+            <div style="font-size: 16px; font-weight: 900; text-align:center;">Passbook & EMI Structure</div>
+        </div>
+        <div class="body-content">
+            <div class="card">
+                <div class="card-title">📈 MONTHLY EMI STRUCTURE CHART</div>
+                <div style="font-size: 9px; color: #4b5563; margin-bottom: 6px;">Reducing Balance Amortization Schedule:</div>
+                <div id="client_emi_chart_container" style="overflow-x: auto;"></div>
+            </div>
+
+            <div id="client_charges_list"></div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-item" onclick="switchClientTab('dashboard')"><span>🏠</span>Dashboard</button>
+            <button class="nav-item" onclick="switchClientTab('papers')"><span>📄</span>Papers</button>
+            <button class="nav-item active" onclick="switchClientTab('passbook')"><span>💳</span>Passbook</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+  let currentLoggedInMobile = "";
+  let activeRealtimeUnsubscribe = null;
+  let activeClientObject = null;
+
+  function getLocalClients() {
+    return JSON.parse(localStorage.getItem('dhani_all_clients')) || JSON.parse(localStorage.getItem('bajaj_all_clients')) || [];
+  }
+
+  async function fetchMatchedClient(inputVal) {
+    if (window.firebaseDatabase && window.dbRef && window.dbGet) {
+      try {
+        let clientRef = window.dbRef(window.firebaseDatabase, 'clients/' + inputVal);
+        let snapDirect = await window.dbGet(clientRef);
+        if (snapDirect.exists()) {
+          return snapDirect.val();
+        }
+
+        let clientsRef = window.dbRef(window.firebaseDatabase, 'clients');
+        let qAppNo = window.dbQuery(clientsRef, window.dbOrderByChild('appNo'), window.dbEqualTo(inputVal));
+        let snapAppNo = await window.dbGet(qAppNo);
+        if (snapAppNo.exists()) {
+          let val = snapAppNo.val();
+          let firstKey = Object.keys(val)[0];
+          return val[firstKey];
+        }
+      } catch (err) {
+        console.error("Firebase fetch error:", err);
+      }
+    }
+
+    let localMatched = getLocalClients().find(c => c.mobile === inputVal || (c.appNo && c.appNo.toLowerCase() === inputVal.toLowerCase()));
+    if (localMatched) return localMatched;
+
+    return null;
+  }
+
+  function renderDashboardUI(matchedClient) {
+    if (!matchedClient) return;
+    activeClientObject = matchedClient;
+    currentLoggedInMobile = matchedClient.mobile;
+
+    let clientAvatarImg = matchedClient.avatar || matchedClient.photo || matchedClient.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80";
+    document.getElementById('client_dashboard_avatar').src = clientAvatarImg;
+
+    let loanAmtNum = Number(matchedClient.loanAmount) || 0;
+    let annualRate = Number(matchedClient.interestRate) || 7;
+    
+    let tenureStr = String(matchedClient.tenure || "1");
+    let tenureYears = parseInt(tenureStr) || 1;
+    let totalMonths = tenureYears * 12;
+
+    let monthlyRate = (annualRate / 12) / 100;
+    let monthlyEmiVal = 0;
+    if (monthlyRate > 0 && totalMonths > 0) {
+      let x = Math.pow(1 + monthlyRate, totalMonths);
+      monthlyEmiVal = Math.round((loanAmtNum * monthlyRate * x) / (x - 1));
+    } else {
+      monthlyEmiVal = Math.round(loanAmtNum / (totalMonths || 1));
+    }
+
+    let totalPayment = monthlyEmiVal * totalMonths;
+    let estInterest = Math.max(0, totalPayment - loanAmtNum);
+
+    document.getElementById('lbl_loanAmount').innerText = '₹' + loanAmtNum.toLocaleString('en-IN') + '/-';
+    document.getElementById('lbl_loanTypeTag').innerText = matchedClient.loanType || 'DHANI PERSONAL LOAN';
+
+    document.getElementById('lbl_analysisPrincipal').innerText = '₹' + loanAmtNum.toLocaleString('en-IN');
+    document.getElementById('lbl_analysisInterest').innerText = '₹' + estInterest.toLocaleString('en-IN');
+
+    document.getElementById('lbl_appNo').innerText = matchedClient.appNo || '---';
+    document.getElementById('lbl_tenure').innerText = tenureYears + ' Years (' + totalMonths + ' Months)';
+    document.getElementById('lbl_interestRate').innerText = annualRate + '% p.a.';
+    document.getElementById('lbl_monthlyEmi').innerText = '₹' + monthlyEmiVal.toLocaleString('en-IN') + '/-';
+
+    document.getElementById('lbl_fullName').innerText = matchedClient.fullName || matchedClient.name || '---';
+    document.getElementById('lbl_fatherName').innerText = matchedClient.fatherName || matchedClient.father || '---';
+    document.getElementById('lbl_dob').innerText = matchedClient.dob || '---';
+    document.getElementById('lbl_mobile').innerText = matchedClient.mobile || '---';
+    document.getElementById('lbl_email').innerText = matchedClient.email || '---';
+    
+    let rawAadhaar = matchedClient.aadhaar || '';
+    let maskedAadhaar = rawAadhaar.length >= 4 ? 'XXXX-XXXX-' + rawAadhaar.slice(-4) : '[Redacted]';
+    document.getElementById('lbl_aadhaar').innerText = maskedAadhaar;
+    document.getElementById('lbl_pan').innerText = matchedClient.pan || '---';
+
+    document.getElementById('lbl_accType').innerText = matchedClient.accType || 'Saving';
+    document.getElementById('lbl_bankName').innerText = matchedClient.bankName || '---';
+    document.getElementById('lbl_accNo').innerText = matchedClient.accNo || matchedClient.accountNumber || '---';
+    document.getElementById('lbl_ifsc').innerText = matchedClient.ifsc || '---';
+
+    document.getElementById('lbl_statusHeading').innerText = matchedClient.statusHeading || 'Approved';
+    document.getElementById('lbl_statusDesc').innerText = matchedClient.statusDesc || 'Your loan is processed successfully.';
+
+    let emiTableHtml = `<table class="emi-table"><tr><th>M</th><th>Principal</th><th>Interest</th><th>Balance</th></tr>`;
+    let balance = loanAmtNum;
+    for(let m = 1; m <= Math.min(totalMonths, 12); m++) {
+      let interestComponent = Math.round(balance * monthlyRate);
+      let principalComponent = Math.round(monthlyEmiVal - interestComponent);
+      balance = Math.max(0, balance - principalComponent);
+      emiTableHtml += `<tr><td>M-${m}</td><td>₹${principalComponent.toLocaleString('en-IN')}</td><td>₹${interestComponent.toLocaleString('en-IN')}</td><td>₹${balance.toLocaleString('en-IN')}</td></tr>`;
+    }
+    emiTableHtml += `</table>`;
+    if(totalMonths > 12) emiTableHtml += `<div style="font-size:7px; color:#64748b; text-align:center; margin-top:4px;">* Showing first 12 months amortization out of ${totalMonths} months.</div>`;
+    document.getElementById('client_emi_chart_container').innerHTML = emiTableHtml;
+
+    let upiId = matchedClient.upiId || 'merchant@paytm';
+    let qrCode = matchedClient.qrCodeBase64 || '';
+    let chargesContainer = document.getElementById('client_charges_list');
+    chargesContainer.innerHTML = '';
+    
+    if (matchedClient.charges && matchedClient.charges.length > 0) {
+      matchedClient.charges.forEach((c, idx) => {
+        let cleanAmount = c.amount ? c.amount.replace(/[^0-9]/g, '') : '500';
+        let upiDeepLink = `upi://pay?pa=${upiId}&pn=DhaniFinance&am=${cleanAmount}&cu=INR`;
+        let qrHtml = qrCode ? `<div style="text-align:center; margin: 6px 0;"><img src="${qrCode}" style="width:110px; height:110px; border-radius:6px; border:1px solid #cbd5e1;"></div>` : '';
+
+        let receiptPreviewHtml = c.receipt ? `<div style="margin-top:6px; font-size:9px; color:#047857; font-weight:800;">✅ Receipt Uploaded & Saved</div>` : '';
+
+        chargesContainer.innerHTML += `
+          <div class="card">
+            <div class="card-title">CHARGE ITEM #${idx + 1}</div>
+            <div class="grid-2">
+              <div><span class="data-label">Fee Type</span><span class="data-value">${c.name}</span></div>
+              <div><span class="data-label">Amount</span><span class="data-value" style="color:#2563eb;">${c.amount}</span></div>
+              <div style="grid-column: span 2;"><span class="data-label">Status</span><span class="data-value" style="color:#047857;">${c.txn}</span></div>
+            </div>
+
+            <div class="pay-box">
+              <div style="font-size: 9px; font-weight: 800; color: #334155; margin-bottom: 4px;">💳 Pay via GPay / PhonePe / Paytm / UPI</div>
+              ${qrHtml}
+              <a href="${upiDeepLink}" class="pay-now-btn">⚡ Pay ${c.amount} Now via UPI App</a>
+              <div style="font-size: 8px; color: #64748b; text-align: center; margin-bottom: 6px;">UPI ID: <b>${upiId}</b></div>
+              
+              <div class="receipt-upload-box" onclick="document.getElementById('file_input_${idx}').click()">
+                <span id="receipt_label_${idx}">📤 Click here to Upload Payment Screenshot</span>
+                <input type="file" id="file_input_${idx}" accept="image/*,.pdf" style="display:none;" onchange="handleChargeReceiptUpload(this, ${idx})">
+              </div>
+              ${receiptPreviewHtml}
+              <button onclick="submitChargeReceipt(${idx})" style="width: 100%; background: #10b981; color: white; border: none; padding: 6px; border-radius: 4px; font-size: 9px; font-weight: 800; cursor: pointer; margin-top: 6px;">
+                ✅ Submit Screenshot for this Charge
+              </button>
+            </div>
+          </div>`;
+      });
+    } else {
+      chargesContainer.innerHTML += `<div class="card" style="text-align:center; font-size:10px; color:#6b7280;">No pending charges found.</div>`;
+    }
+
+    let papersContainer = document.getElementById('client_papers_list');
+    papersContainer.innerHTML = '';
+    if (matchedClient.papers && matchedClient.papers.length > 0) {
+      matchedClient.papers.forEach((p, pIdx) => {
+        let docLink = p.link || '#';
+        papersContainer.innerHTML += `
+          <div class="doc-item-card">
+            <div>
+              <div style="font-size:11px; font-weight:900; color:#0052cc;">${p.title}</div>
+              <span style="font-size:8px; color:#6b7280; font-weight:700;">${p.date || 'Recent'}</span>
+            </div>
+            <button onclick="openDocumentSafely('${encodeURIComponent(docLink)}')" class="get-btn">VIEW</button>
+          </div>`;
+      });
+    } else {
+      papersContainer.innerHTML = `<div class="card" style="text-align:center; font-size:10px; color:#6b7280; margin:15px;">No papers or approval letters uploaded yet.</div>`;
+    }
+  }
+
+  async function clientLogin() {
+    let inputVal = document.getElementById('login_input').value.trim();
+    let btn = document.getElementById('btn_check_status');
+    let errDiv = document.getElementById('login_error');
+
+    if (!inputVal) {
+      errDiv.innerText = "Please enter mobile or application ID!";
+      return;
+    }
+
+    errDiv.innerText = "";
+    btn.disabled = true;
+    btn.innerText = "⏳ Verifying Details...";
+
+    let matchedClient = await fetchMatchedClient(inputVal);
+
+    btn.disabled = false;
+    btn.innerText = "🔍 Check Status & View Details";
+
+    if (matchedClient) {
+      renderDashboardUI(matchedClient);
+      
+      if (window.firebaseDatabase && window.dbRef && window.dbOnValue) {
+        let liveRef = window.dbRef(window.firebaseDatabase, 'clients/' + matchedClient.mobile);
+        activeRealtimeUnsubscribe = window.dbOnValue(liveRef, (snapshot) => {
+          if (snapshot.exists()) {
+            renderDashboardUI(snapshot.val());
+          }
+        });
+      }
+
+      switchView('view-dashboard');
+    } else {
+      errDiv.innerText = "Details not found!";
+    }
+  }
+
+  function openDocumentSafely(encodedLink) {
+    let link = decodeURIComponent(encodedLink);
+    if (!link || link === '#') {
+      alert('Document link is not available.');
+      return;
+    }
+    
+    if (link.startsWith('data:') || link.startsWith('blob:')) {
+      let newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(`<iframe src="${link}" style="width:100%; height:100%; border:none;"></iframe>`);
+      } else {
+        let a = document.createElement('a');
+        a.href = link;
+        a.target = '_blank';
+        a.download = 'Document.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } else {
+      let a = document.createElement('a');
+      a.href = link;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  }
+
+  let tempChargeReceipts = {};
+
+  function handleChargeReceiptUpload(input, index) {
+    if (input.files && input.files[0]) {
+      let file = input.files[0];
+      let reader = new FileReader();
+      reader.onload = function(e) {
+        tempChargeReceipts[index] = e.target.result;
+        document.getElementById(`receipt_label_${index}`).innerText = "✅ " + file.name + " (Ready)";
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function submitChargeReceipt(index) {
+    if (!tempChargeReceipts[index]) {
+      alert('Please select or upload your payment screenshot first!');
+      return;
+    }
+
+    if (activeClientObject && activeClientObject.charges) {
+      if (activeClientObject.charges[index]) {
+        activeClientObject.charges[index].receipt = tempChargeReceipts[index];
+        activeClientObject.charges[index].txn = "TXN SUBMITTED (VERIFYING)";
+      }
+
+      if (window.firebaseDatabase && window.dbRef && window.dbSet) {
+        await window.dbSet(window.dbRef(window.firebaseDatabase, 'clients/' + activeClientObject.mobile), activeClientObject);
+        alert('Payment screenshot submitted successfully to Realtime Database!');
+      } else {
+        let clients = getLocalClients().map(c => c.mobile === currentLoggedInMobile ? activeClientObject : c);
+        localStorage.setItem('dhani_all_clients', JSON.stringify(clients));
+        alert('Payment screenshot submitted successfully!');
+        renderDashboardUI(activeClientObject);
+      }
+    }
+  }
+
+  function logoutClient() {
+    currentLoggedInMobile = "";
+    tempChargeReceipts = {};
+    activeClientObject = null;
+    document.getElementById('login_input').value = '';
+    switchView('view-status-login');
+  }
+
+  function switchView(viewId) {
+    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+  }
+
+  function switchClientTab(tabName) {
+    if (tabName === 'dashboard') switchView('view-dashboard');
+    if (tabName === 'papers') switchView('view-papers');
+    if (tabName === 'passbook') switchView('view-passbook');
+  }
+</script>
+
+</body>
+</html>
